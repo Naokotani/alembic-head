@@ -8,6 +8,8 @@ edition = "2021"
 [dependencies]
 test-log = "0.2.14"
 tracing = "0.1.40"
+diesel = { version = "2.1.0", features = ["postgres"] }
+dotenvy = "0.15"
 
 [profile.dev]
 opt-level = 0
