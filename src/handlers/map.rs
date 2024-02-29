@@ -6,7 +6,7 @@ use crate::schema::map_packs;
 #[diesel(table_name = maps)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Map {
-    pub map_id: i32,
+    pub id: i32,
     pub creator_id: i32,
     pub title: String,
     pub thumb: String,
@@ -36,7 +36,7 @@ pub struct MapCreate {
 #[diesel(table_name = map_packs)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct MapPack {
-    pub map_pack_id: i32,
+    pub id: i32,
     pub creator_id: i32,
     pub title: String,
     pub thumb: String,

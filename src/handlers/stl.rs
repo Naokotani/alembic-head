@@ -5,7 +5,7 @@ use crate::schema::stls;
 #[diesel(table_name = stls)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Stl {
-    pub stl_id: i32,
+    pub id: i32,
     pub creator_id: i32,
     pub title: String,
     pub thumb: String,

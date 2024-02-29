@@ -6,7 +6,7 @@ use crate::schema::token_packs;
 #[diesel(table_name = tokens)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Token {
-    pub token_id: i32,
+    pub id: i32,
     pub creator_id: i32,
     pub title: String,
     pub thumb: String,
@@ -36,7 +36,7 @@ pub struct TokenCreate {
 #[diesel(table_name = token_packs)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct TokenPack {
-    pub token_pack_id: i32,
+    pub id: i32,
     pub creator_id: i32,
     pub title: String,
     pub thumb: String,

@@ -5,7 +5,7 @@ use crate::schema::books;
 #[diesel(table_name = books)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Book {
-    pub book_id: i32,
+    pub id: i32,
     pub creator_id: i32,
     pub title: String,
     pub thumb: String,

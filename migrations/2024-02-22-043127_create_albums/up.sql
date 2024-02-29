@@ -1,9 +1,9 @@
 -- Your SQL goes here
 
 CREATE TABLE albums (
-album_id SERIAL PRIMARY KEY,
+id SERIAL PRIMARY KEY,
 creator_id INTEGER NOT NULL,
-FOREIGN KEY (creator_id) REFERENCES creators(creator_id),
+FOREIGN KEY (creator_id) REFERENCES creators(id),
 title VARCHAR(50) NOT NULL,
 thumb VARCHAR(35) NOT NULL,
 summary VARCHAR(280) NOT NULL,

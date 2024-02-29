@@ -1,8 +1,8 @@
 // @generated automatically by Diesel CLI.
 
 diesel::table! {
-    album_images (image_id) {
-        image_id -> Int4,
+    album_images (id) {
+        id -> Int4,
         album_id -> Int4,
         #[max_length = 50]
         file -> Varchar,
@@ -10,8 +10,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    albums (album_id) {
-        album_id -> Int4,
+    albums (id) {
+        id -> Int4,
         creator_id -> Int4,
         #[max_length = 50]
         title -> Varchar,
@@ -30,8 +30,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    book_images (image_id) {
-        image_id -> Int4,
+    book_images (id) {
+        id -> Int4,
         book_id -> Int4,
         #[max_length = 50]
         file -> Varchar,
@@ -39,8 +39,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    books (book_id) {
-        book_id -> Int4,
+    books (id) {
+        id -> Int4,
         creator_id -> Int4,
         #[max_length = 50]
         title -> Varchar,
@@ -60,8 +60,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    creators (creator_id) {
-        creator_id -> Int4,
+    creators (id) {
+        id -> Int4,
         user_id -> Int4,
         #[max_length = 35]
         first_name -> Nullable<Varchar>,
@@ -77,8 +77,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    map_images (image_id) {
-        image_id -> Int4,
+    map_images (id) {
+        id -> Int4,
         map_id -> Int4,
         #[max_length = 50]
         file -> Varchar,
@@ -86,8 +86,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    map_pack_images (image_id) {
-        image_id -> Int4,
+    map_pack_images (id) {
+        id -> Int4,
         map_pack_id -> Int4,
         #[max_length = 50]
         file -> Varchar,
@@ -95,8 +95,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    map_packs (map_pack_id) {
-        map_pack_id -> Int4,
+    map_packs (id) {
+        id -> Int4,
         creator_id -> Int4,
         #[max_length = 50]
         title -> Varchar,
@@ -115,8 +115,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    maps (map_id) {
-        map_id -> Int4,
+    maps (id) {
+        id -> Int4,
         creator_id -> Int4,
         map_pack_id -> Nullable<Int4>,
         #[max_length = 50]
@@ -138,8 +138,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    stl_images (image_id) {
-        image_id -> Int4,
+    stl_images (id) {
+        id -> Int4,
         stl_id -> Int4,
         #[max_length = 50]
         file -> Varchar,
@@ -147,8 +147,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    stls (stl_id) {
-        stl_id -> Int4,
+    stls (id) {
+        id -> Int4,
         creator_id -> Int4,
         #[max_length = 50]
         title -> Varchar,
@@ -167,8 +167,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    token_pack_images (image_id) {
-        image_id -> Int4,
+    token_pack_images (id) {
+        id -> Int4,
         token_pack_id -> Int4,
         #[max_length = 50]
         file -> Varchar,
@@ -176,8 +176,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    token_packs (token_pack_id) {
-        token_pack_id -> Int4,
+    token_packs (id) {
+        id -> Int4,
         creator_id -> Int4,
         #[max_length = 50]
         title -> Varchar,
@@ -196,8 +196,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    tokens (token_id) {
-        token_id -> Int4,
+    tokens (id) {
+        id -> Int4,
         creator_id -> Int4,
         token_pack_id -> Nullable<Int4>,
         #[max_length = 50]
@@ -219,8 +219,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    tracks (track_id) {
-        track_id -> Int4,
+    tracks (id) {
+        id -> Int4,
         creator_id -> Int4,
         album_id -> Int4,
         #[max_length = 50]
@@ -275,8 +275,8 @@ diesel::table! {
 }
 
 diesel::table! {
-    users (user_id) {
-        user_id -> Int4,
+    users (id) {
+        id -> Int4,
         #[max_length = 50]
         username -> Varchar,
         #[max_length = 50]

@@ -1,11 +1,11 @@
 -- Your SQL goes here
 
 CREATE TABLE tokens (
-token_id SERIAL PRIMARY KEY,
+id SERIAL PRIMARY KEY,
 creator_id INTEGER NOT NULL,
-FOREIGN KEY (creator_id) REFERENCES creators(creator_id),
+FOREIGN KEY (creator_id) REFERENCES creators(id),
 token_pack_id INTEGER,
-FOREIGN KEY (token_pack_id) REFERENCES token_packs(token_pack_id),
+FOREIGN KEY (token_pack_id) REFERENCES token_packs(id),
 title VARCHAR(50) NOT NULL,
 thumb VARCHAR(35) NOT NULL,
 summary VARCHAR(280) NOT NULL,

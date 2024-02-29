@@ -1,11 +1,10 @@
 use diesel::prelude::*;
 use crate::schema::users;
 
-#[derive(Queryable, Selectable)]
-#[diesel(table_name = users)]
+#[derive(Queryable, Selectable, Identifiable, AsChangeset)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct User {
-    pub user_id: i32,
+    pub id: i32,
     pub username: String,
     pub email: String,
     pub logo: String,
@@ -48,5 +47,66 @@ impl User {
             .expect("Error loading posts");
 
         results.into_iter().next().expect("Empty reults vector from user query")
+    }
+
+    pub fn update(conn: &mut PgConnection, user: User) -> usize {
+        use crate::schema::users::dsl::*;
+
+        diesel::update(users).set(&user).execute(conn).expect("Failed to update user")
+    }
+
+    pub fn destroy(conn: &mut PgConnection, id: i32) -> usize {
+        use crate::schema::users::dsl::*;
+
+        diesel::delete(users.filter(id.eq(id)))
+            .execute(conn)
+            .expect("Error deleting posts")
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::handlers::connect;
+
+    #[test]
+    fn user_full() {
+        
+        let conn = &mut connect::establish_connection();
+
+        let user = UserNew::create(conn,
+                                          String::from("naokotani"),
+                                          String::from("nao@gmail.com"),
+                                          String::from("logo.svg"));
+
+        
+        assert_eq!(user.username, "naokotani");
+        assert_eq!(user.email, "nao@gmail.com");
+        assert_eq!(user.logo, "logo.svg");
+
+        let user = User::read(conn, user.id);
+
+        assert_eq!(user.username, "naokotani");
+        assert_eq!(user.email, "nao@gmail.com");
+        assert_eq!(user.logo, "logo.svg");
+
+        let update = User::update(conn, User {
+            id: user.id,
+            username: String::from("bob"),
+            email: String::from("bill@hotmail.com"),
+            logo: String::from("slick.svg"),
+        });
+
+        assert_eq!(update, 1);
+
+        let user = User::read(conn, user.id);
+
+        assert_eq!(user.username, "bob");
+        assert_eq!(user.email, "bill@hotmail.com");
+        assert_eq!(user.logo, "slick.svg");
+
+        let delete = User::destroy(conn, user.id);
+
+        assert_eq!(delete, 1);
     }
 }

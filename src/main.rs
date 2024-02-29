@@ -16,25 +16,23 @@ mod handlers {
 }
 
 use crate::handlers::user;
-use crate::handlers::creator;
 use crate::handlers::connect;
-use crate::types::user::DisplayName;
 
 
 mod schema;
 
 fn main() {
-    let conn = &mut connect::establish_connection();
+    // let conn = &mut connect::establish_connection();
 
-    let user = user::UserNew::create(conn,
-                                          String::from("foo"),
-                                          String::from("email"),
-                                          String::from("logo"));
+    // let user = user::UserNew::create(conn,
+    //                                       String::from("foo"),
+    //                                       String::from("email"),
+    //                                       String::from("logo"));
 
-    println!("username: {}, email: {}, logo: {}", user.username, user.email, user.logo);
+    // println!("username: {}, email: {}, logo: {}", user.username, user.email, user.logo);
 
-    let user = user::User::read(conn, 1);
+    // let user = user::User::read(conn, 1);
 
-    println!("id: {} username: {}, email: {}, logo: {}", user.user_id, user.username, user.email, user.logo);
+    // println!("id: {} username: {}, email: {}, logo: {}", user.id, user.username, user.email, user.logo);
 
 }

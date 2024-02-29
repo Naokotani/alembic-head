@@ -1,9 +1,9 @@
 -- Your SQL goes here
 
 CREATE TABLE creators (
-creator_id SERIAL PRIMARY KEY,
+id SERIAL PRIMARY KEY,
 user_id INTEGER NOT NULL,
-FOREIGN KEY (user_id) REFERENCES users(user_id),
+FOREIGN KEY (user_id) REFERENCES users(id),
 first_name VARCHAR(35),
 last_name VARCHAR(35),
 other_name VARCHAR(50),
