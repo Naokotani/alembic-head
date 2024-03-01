@@ -1,7 +1,6 @@
 use diesel::prelude::*;
-use crate::schema::{books};
-use crate::types::asset::{Asset, Summary, Page, Ownership, AssetType};
-use crate::handlers::creator::Creator;
+use crate::schema::books;
+use crate::types::asset::{Asset, Summary, Ownership, AssetType};
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = books)]
@@ -88,27 +87,6 @@ impl Asset for Book {
             logo: String::from("derp"),
         }
     }
-
-    fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page {
-        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
-
-        let display_name = creator.get_display_name();
-
-        let ownership = if self.is_free {
-            Ownership::Free
-        } else {
-            Ownership::Unowned
-        };
-
-        Page {
-            display_name,
-            ownership,
-            asset_type: AssetType::Book,
-            logo: user.logo,
-            extra_images: vec![String::from("foo")],
-        }
-    }
-        
 }
 
 #[cfg(test)]
@@ -159,7 +137,14 @@ mod tests {
         assert_eq!(book.main_image, "image.jpg");
         assert_eq!(book.is_free, false);
 
-        let page = book.paginate(conn, user.id);
+        let page = book.paginate(conn,
+                                 user.id,
+                                 book.creator_id,
+                                 AssetType::Book,
+                                 book.is_free);
+
+        assert_eq!(page.display_name, "Chris Hughes");
+        assert_eq!(page.logo, "logo.svg");
 
         let delete = Book::destroy(conn, book.id);
 

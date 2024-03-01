@@ -1,10 +1,33 @@
 use diesel::prelude::PgConnection;
+use crate::handlers::creator::Creator;
 
 pub trait Asset {
     fn read(conn: &mut PgConnection, id: i32) -> impl Asset;
     fn destroy(conn: &mut PgConnection, id: i32) -> usize;
     fn summarize(&self) -> Summary;
-    fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page;
+    fn paginate(&self, conn: &mut PgConnection,
+                _user_id: i32,
+                creator_id: i32,
+                asset_type: AssetType,
+                is_free: bool
+    ) -> Page {
+        let (creator, user) = Creator::creator_with_user(conn, creator_id);
+        let display_name = creator.get_display_name();
+        let extra_images = asset_type.images();
+        let ownership = if is_free {
+            Ownership::Free
+        } else {
+            Ownership::Unowned
+        };
+
+        Page {
+            display_name,
+            ownership,
+            asset_type,
+            logo: user.logo,
+            extra_images,
+        }
+    }
 }
 
 pub struct Summary {
@@ -68,6 +91,19 @@ impl AssetType {
             Self::Stl => "stl", 
             Self::TokenPack => "token_pack",
             Self::Token => "token",
+        }
+    }
+
+    pub fn images(&self) -> Vec<String> {
+        match self {
+            Self::Book => Vec::new(),
+            Self::Album => Vec::new(),
+            Self::Map => Vec::new(),
+            Self::MapPack => Vec::new(),
+            Self::Stl => Vec::new(),
+            Self::TokenPack => Vec::new(),
+            Self::Token => Vec::new(),
+            
         }
     }
 }

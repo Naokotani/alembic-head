@@ -234,5 +234,7 @@ mod tests {
         let conn = &mut connect::establish_connection();
 
         let delete = user::User::destroy(conn, user.id);
+
+        assert_eq!(delete, 1);
     }
 }
