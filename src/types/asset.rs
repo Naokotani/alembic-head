@@ -2,8 +2,9 @@ use diesel::prelude::PgConnection;
 use crate::handlers::creator::Creator;
 
 pub trait Asset {
-    fn read(conn: &mut PgConnection, id: i32) -> impl Asset;
+    fn read(conn: &mut PgConnection, id: i32) -> Self;
     fn destroy(conn: &mut PgConnection, id: i32) -> usize;
+    fn update(&self, conn: &mut PgConnection) -> usize;
     fn summarize(&self) -> Summary;
     fn paginate(&self, conn: &mut PgConnection,
                 _user_id: i32,

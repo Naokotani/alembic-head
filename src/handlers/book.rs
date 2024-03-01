@@ -1,8 +1,8 @@
-use diesel::prelude::*;
 use crate::schema::books;
-use crate::types::asset::{Asset, Summary, Ownership, AssetType};
+use crate::types::asset::{Asset, AssetType, Ownership, Summary};
+use diesel::prelude::*;
 
-#[derive(Queryable, Selectable)]
+#[derive(Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = books)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Book {
@@ -62,7 +62,7 @@ impl BookCreate {
 }
 
 impl Asset for Book {
-    fn read(conn: &mut PgConnection, book_id: i32) -> impl Asset {
+    fn read(conn: &mut PgConnection, book_id: i32) -> Self {
         use crate::schema::books::dsl::*;
 
         books
@@ -79,6 +79,18 @@ impl Asset for Book {
             .execute(conn)
             .expect("Error deleting posts")
     }
+
+    fn update(&self, conn: &mut PgConnection) -> usize {
+        use crate::schema::books::dsl::*;
+
+        diesel::update(books)
+            .filter(id.eq(self.id))
+            .set(self)
+            .execute(conn)
+            .expect("Failed to update user");
+        1
+    }
+
     fn summarize(&self) -> Summary {
         Summary {
             display_name: String::from("naokotani"),
@@ -92,9 +104,9 @@ impl Asset for Book {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::handlers::creator::{CreatorNew, Creators};
-    use crate::handlers::user::{UserNew, User};
     use crate::handlers::connect;
+    use crate::handlers::creator::{CreatorNew, Creators};
+    use crate::handlers::user::{User, UserNew};
     use crate::types::user::DisplayName;
 
     #[test]
@@ -108,16 +120,17 @@ mod tests {
             String::from("logo.svg"),
         );
 
-        let creator = CreatorNew::create(conn,
-                                         user.id,
-                                         Some(String::from("Chris")),
-                                         Some(String::from("Hughes")),
-                                         Some(String::from("naokotani")),
-                                         Some(String::from("Random House")),
-                                         DisplayName::Name,
-                                         );
+        let creator = CreatorNew::create(
+            conn,
+            user.id,
+            Some(String::from("Chris")),
+            Some(String::from("Hughes")),
+            Some(String::from("naokotani")),
+            Some(String::from("Random House")),
+            DisplayName::Name,
+        );
 
-        let book = BookCreate::new(
+        let mut book = BookCreate::new(
             creator.id,
             String::from("Dungeons and Dragons"),
             String::from("thumb.jpg"),
@@ -126,8 +139,8 @@ mod tests {
             385,
             String::from("image.jpg"),
             false,
-
-        ).create(conn);
+        )
+        .create(conn);
 
         assert_eq!(book.title, "Dungeons and Dragons");
         assert_eq!(book.thumb, "thumb.jpg");
@@ -137,14 +150,27 @@ mod tests {
         assert_eq!(book.main_image, "image.jpg");
         assert_eq!(book.is_free, false);
 
-        let page = book.paginate(conn,
-                                 user.id,
-                                 book.creator_id,
-                                 AssetType::Book,
-                                 book.is_free);
+        let page = book.paginate(
+            conn,
+            user.id,
+            book.creator_id,
+            AssetType::Book,
+            book.is_free,
+        );
 
         assert_eq!(page.display_name, "Chris Hughes");
         assert_eq!(page.logo, "logo.svg");
+
+        book.title = String::from("For Whom the Bell Tolls");
+
+        let update = book.update(conn);
+
+        assert_eq!(update, 1);
+
+        let book = Book::read(conn, book.id);
+
+        assert_eq!(book.title, "For Whom the Bell Tolls");
+        assert_eq!(book.summary, "What a book!");
 
         let delete = Book::destroy(conn, book.id);
 
@@ -152,6 +178,5 @@ mod tests {
 
         Creators::destroy(conn, creator.id);
         User::destroy(conn, user.id);
-
     }
 }
