@@ -1,5 +1,5 @@
-use diesel::prelude::*;
 use crate::schema::users;
+use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, Identifiable, AsChangeset)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
@@ -18,7 +18,6 @@ pub struct UserNew {
     pub logo: String,
 }
 
-
 impl UserNew {
     pub fn create(conn: &mut PgConnection, username: String, email: String, logo: String) -> User {
         let user_new = UserNew {
@@ -33,32 +32,33 @@ impl UserNew {
             .get_result(conn)
             .expect("Error saving new post")
     }
-
 }
 
 impl User {
-    pub fn read(conn: &mut PgConnection, id: i32) -> Self {
+    pub fn read(conn: &mut PgConnection, user_id: i32) -> Self {
         use crate::schema::users::dsl::*;
 
-        let results = users
-            .limit(1)
+        users
+            .filter(id.eq(user_id))
             .select(User::as_select())
-            .load(conn)
-            .expect("Error loading posts");
-
-        results.into_iter().next().expect("Empty reults vector from user query")
+            .get_result(conn)
+            .expect("Error loading posts")
     }
 
     pub fn update(conn: &mut PgConnection, user: User) -> usize {
         use crate::schema::users::dsl::*;
 
-        diesel::update(users).set(&user).execute(conn).expect("Failed to update user")
+        diesel::update(users)
+            .filter(id.eq(user.id))
+            .set(&user)
+            .execute(conn)
+            .expect("Failed to update user")
     }
 
-    pub fn destroy(conn: &mut PgConnection, id: i32) -> usize {
+    pub fn destroy(conn: &mut PgConnection, user_id: i32) -> usize {
         use crate::schema::users::dsl::*;
 
-        diesel::delete(users.filter(id.eq(id)))
+        diesel::delete(users.filter(id.eq(user_id)))
             .execute(conn)
             .expect("Error deleting posts")
     }
@@ -71,15 +71,15 @@ mod tests {
 
     #[test]
     fn user_full() {
-        
         let conn = &mut connect::establish_connection();
 
-        let user = UserNew::create(conn,
-                                          String::from("naokotani"),
-                                          String::from("nao@gmail.com"),
-                                          String::from("logo.svg"));
+        let user = UserNew::create(
+            conn,
+            String::from("naokotani"),
+            String::from("nao@gmail.com"),
+            String::from("logo.svg"),
+        );
 
-        
         assert_eq!(user.username, "naokotani");
         assert_eq!(user.email, "nao@gmail.com");
         assert_eq!(user.logo, "logo.svg");
@@ -90,12 +90,15 @@ mod tests {
         assert_eq!(user.email, "nao@gmail.com");
         assert_eq!(user.logo, "logo.svg");
 
-        let update = User::update(conn, User {
-            id: user.id,
-            username: String::from("bob"),
-            email: String::from("bill@hotmail.com"),
-            logo: String::from("slick.svg"),
-        });
+        let update = User::update(
+            conn,
+            User {
+                id: user.id,
+                username: String::from("bob"),
+                email: String::from("bill@hotmail.com"),
+                logo: String::from("slick.svg"),
+            },
+        );
 
         assert_eq!(update, 1);
 

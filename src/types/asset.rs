@@ -1,31 +1,25 @@
+use diesel::prelude::PgConnection;
+
 pub trait Asset {
-    fn read(id: i32) -> Self;
-    fn destroy(id: i32) -> i32;
-    fn getDisplayName(&self) -> String;
+    fn read(conn: &mut PgConnection, id: i32) -> impl Asset;
+    fn destroy(conn: &mut PgConnection, id: i32) -> usize;
     fn summarize(&self) -> Summary;
-    fn paginate(user_id: i32) -> Page;
+    fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page;
 }
 
-struct Summary {
-    title: String,
-    thumb: String,
-    display_name: String,
-    ownership: Ownership,
-    summary: String,
-    asset_type: AssetType,
-    logo: String,
+pub struct Summary {
+    pub display_name: String,
+    pub ownership: Ownership,
+    pub asset_type: AssetType,
+    pub logo: String,
 }
 
-struct Page {
-    title: String,
-    thumb: String,
-    display_name: String,
-    ownership: Ownership,
-    summary: String,
-    asset_type: AssetType,
-    logo: String,
-    main_image: String,
-    extra_images: Vec<String>,
+pub struct Page {
+    pub display_name: String,
+    pub ownership: Ownership,
+    pub asset_type: AssetType,
+    pub logo: String,
+    pub extra_images: Vec<String>,
 }
 
 #[derive(PartialEq, Debug)]

@@ -13,7 +13,6 @@ pub struct Map {
     pub file: String,
     pub height: Option<i32>,
     pub width: Option<i32>,
-    pub display_name: String,
     pub is_free: bool,
     pub main_image: String,
 }
@@ -27,7 +26,6 @@ pub struct MapCreate {
     pub file: String,
     pub height: Option<i32>,
     pub width: Option<i32>,
-    pub display_name: String,
     pub is_free: bool,
     pub main_image: String,
 }
@@ -41,7 +39,6 @@ pub struct MapPack {
     pub title: String,
     pub thumb: String,
     pub directory: String,
-    pub display_name: String,
     pub is_free: bool,
     pub main_image: String,
 }
@@ -53,7 +50,6 @@ pub struct MapPackCreate {
     pub title: String,
     pub thumb: String,
     pub directory: String,
-    pub display_name: String,
     pub is_free: bool,
     pub main_image: String,
 }

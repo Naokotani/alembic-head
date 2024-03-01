@@ -11,7 +11,7 @@ impl DisplayName {
         match self {
             Self::Name => "name",
             Self::Other => "other",
-           Self::NamePublisher => "name_publisher",
+            Self::NamePublisher => "name_publisher",
             Self::OtherPublisher => "other_publisher",
         }
     }

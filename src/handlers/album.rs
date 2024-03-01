@@ -33,7 +33,6 @@ pub struct Album {
     pub title: String,
     pub thumb: String,
     pub directory: String,
-    pub display_name: String,
     pub is_free: bool,
     pub main_image: String,
 }
@@ -45,7 +44,6 @@ pub struct AlbumCreate {
     pub title: String,
     pub thumb: String,
     pub directory: String,
-    pub display_name: String,
     pub is_free: bool,
     pub main_image: String,
 }

@@ -1,5 +1,7 @@
 use diesel::prelude::*;
-use crate::schema::books;
+use crate::schema::{books};
+use crate::types::asset::{Asset, Summary, Page, Ownership, AssetType};
+use crate::handlers::creator::Creator;
 
 #[derive(Queryable, Selectable)]
 #[diesel(table_name = books)]
@@ -13,7 +15,6 @@ pub struct Book {
     pub file: String,
     pub pages: i32,
     pub main_image: String,
-    pub display_name: String,
     pub is_free: bool,
 }
 
@@ -27,6 +28,145 @@ pub struct BookCreate {
     pub file: String,
     pub pages: i32,
     pub main_image: String,
-    pub display_name: String,
     pub is_free: bool,
+}
+
+impl BookCreate {
+    pub fn new(
+        creator_id: i32,
+        title: String,
+        thumb: String,
+        summary: String,
+        file: String,
+        pages: i32,
+        main_image: String,
+        is_free: bool,
+    ) -> Self {
+        BookCreate {
+            creator_id,
+            title,
+            thumb,
+            summary,
+            file,
+            pages,
+            main_image,
+            is_free,
+        }
+    }
+    pub fn create(&self, conn: &mut PgConnection) -> Book {
+        diesel::insert_into(books::table)
+            .values(self)
+            .returning(Book::as_returning())
+            .get_result(conn)
+            .expect("Error saving Book")
+    }
+}
+
+impl Asset for Book {
+    fn read(conn: &mut PgConnection, book_id: i32) -> impl Asset {
+        use crate::schema::books::dsl::*;
+
+        books
+            .filter(id.eq(book_id))
+            .select(Book::as_select())
+            .get_result(conn)
+            .expect("Error loading posts")
+    }
+
+    fn destroy(conn: &mut PgConnection, book_id: i32) -> usize {
+        use crate::schema::books::dsl::*;
+
+        diesel::delete(books.filter(id.eq(book_id)))
+            .execute(conn)
+            .expect("Error deleting posts")
+    }
+    fn summarize(&self) -> Summary {
+        Summary {
+            display_name: String::from("naokotani"),
+            ownership: Ownership::Owned,
+            asset_type: AssetType::Book,
+            logo: String::from("derp"),
+        }
+    }
+
+    fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page {
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
+
+        let display_name = creator.get_display_name();
+
+        let ownership = if self.is_free {
+            Ownership::Free
+        } else {
+            Ownership::Unowned
+        };
+
+        Page {
+            display_name,
+            ownership,
+            asset_type: AssetType::Book,
+            logo: user.logo,
+            extra_images: vec![String::from("foo")],
+        }
+    }
+        
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use crate::handlers::creator::{CreatorNew, Creators};
+    use crate::handlers::user::{UserNew, User};
+    use crate::handlers::connect;
+    use crate::types::user::DisplayName;
+
+    #[test]
+    fn user_full() {
+        let conn = &mut connect::establish_connection();
+
+        let user = UserNew::create(
+            conn,
+            String::from("naokotani"),
+            String::from("nao@gmail.com"),
+            String::from("logo.svg"),
+        );
+
+        let creator = CreatorNew::create(conn,
+                                         user.id,
+                                         Some(String::from("Chris")),
+                                         Some(String::from("Hughes")),
+                                         Some(String::from("naokotani")),
+                                         Some(String::from("Random House")),
+                                         DisplayName::Name,
+                                         );
+
+        let book = BookCreate::new(
+            creator.id,
+            String::from("Dungeons and Dragons"),
+            String::from("thumb.jpg"),
+            String::from("What a book!"),
+            String::from("file.pdf"),
+            385,
+            String::from("image.jpg"),
+            false,
+
+        ).create(conn);
+
+        assert_eq!(book.title, "Dungeons and Dragons");
+        assert_eq!(book.thumb, "thumb.jpg");
+        assert_eq!(book.summary, "What a book!");
+        assert_eq!(book.file, "file.pdf");
+        assert_eq!(book.pages, 385);
+        assert_eq!(book.main_image, "image.jpg");
+        assert_eq!(book.is_free, false);
+
+        let page = book.paginate(conn, user.id);
+
+        let delete = Book::destroy(conn, book.id);
+
+        assert_eq!(delete, 1);
+
+        Creators::destroy(conn, creator.id);
+        User::destroy(conn, user.id);
+
+    }
 }

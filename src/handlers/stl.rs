@@ -11,7 +11,6 @@ pub struct Stl {
     pub thumb: String,
     pub summary: String,
     pub file: String,
-    pub display_name: String,
     pub is_free: bool,
     pub main_image: String,
 }
@@ -23,7 +22,6 @@ pub struct TokenCreate {
     pub title: String,
     pub thumb: String,
     pub file: String,
-    pub display_name: String,
     pub is_free: bool,
     pub main_image: String,
 }

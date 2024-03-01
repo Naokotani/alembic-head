@@ -10,6 +10,5 @@ summary VARCHAR(280) NOT NULL,
 file VARCHAR(50) NOT NULL,
 pages INTEGER NOT NULL,
 main_image VARCHAR(50) NOT NULL,
-display_name VARCHAR(50) NOT NULL,
 is_free boolean NOT NULL
 );

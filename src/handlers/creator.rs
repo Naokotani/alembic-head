@@ -1,4 +1,5 @@
-use crate::schema::creators;
+use crate::schema::{creators, users};
+use crate::handlers::user::User;
 use crate::types::user::DisplayName;
 use diesel::prelude::*;
 
@@ -58,6 +59,37 @@ impl Creator {
             default_name,
         }
     }
+
+    pub fn creator_with_user(conn: &mut PgConnection, creator_id: i32) -> (Self, User) {
+
+        let (creators, user) = creators::table
+            .inner_join(users::table)
+            .filter(creators::id.eq(creator_id))
+            .select((Creators::as_select(), User::as_select()))
+            .get_result::<(Creators, User)>(conn).expect("Failed to get user/creator");
+
+        (Creator::new(creators), user)
+    }
+
+    pub fn get_display_name(&self) -> String {
+        match self.default_name {
+            DisplayName::Name => format!("{} {}", self.first_name, self.last_name),
+            DisplayName::Other => format!("{}", self.other_name),
+            DisplayName::NamePublisher => {
+                format!("{} {} publisher: {}",
+                        self.first_name,
+                        self.last_name,
+                        self.publisher
+                )
+            },
+            DisplayName::OtherPublisher => {
+                format!("{} publisher: {}",
+                        self.other_name,
+                        self.publisher
+                )
+            },
+        }
+    }
 }
 
 impl CreatorNew {
@@ -80,6 +112,7 @@ impl CreatorNew {
             default_name: name,
         };
 
+
         let creator = diesel::insert_into(creators::table)
             .values(&creator_new)
             .returning(Creators::as_returning())
@@ -88,26 +121,25 @@ impl CreatorNew {
 
         Creator::new(creator)
     }
+
 }
 
 impl Creators {
-    pub fn read(conn: &mut PgConnection, id: i32) -> Creator {
+    pub fn read(conn: &mut PgConnection, creator_id: i32) -> Creator {
         use crate::schema::creators::dsl::*;
-        let results: Vec<Creators> = creators
-            .filter(id.eq(id))
-            .limit(1)
+        let result = creators
+            .filter(id.eq(creator_id))
             .select(Creators::as_select())
-            .load(conn)
+            .get_result(conn)
             .expect("Error loading creators");
 
-        let result = results.into_iter().next();
-
-        Creator::new(result.unwrap())
+        Creator::new(result)
     }
+
 
     pub fn update_names(
         conn: &mut PgConnection,
-        id: i32,
+        creator_id: i32,
         first: Option<String>,
         last: Option<String>,
         other: Option<String>,
@@ -117,7 +149,7 @@ impl Creators {
         use crate::schema::creators::dsl::*;
 
         diesel::update(creators)
-            .filter(id.eq(id))
+            .filter(id.eq(creator_id))
             .set((
                 first_name.eq(first),
                 last_name.eq(last),
@@ -129,10 +161,10 @@ impl Creators {
             .expect("Creator update failed")
     }
 
-    pub fn destroy(conn: &mut PgConnection, id: i32) -> usize {
+    pub fn destroy(conn: &mut PgConnection, creator_id: i32) -> usize {
         use crate::schema::creators::dsl::*;
 
-        diesel::delete(creators.filter(id.eq(id)))
+        diesel::delete(creators.filter(id.eq(creator_id)))
             .execute(conn)
             .expect("Error deleting posts")
     }
@@ -202,7 +234,5 @@ mod tests {
         let conn = &mut connect::establish_connection();
 
         let delete = user::User::destroy(conn, user.id);
-
-
     }
 }

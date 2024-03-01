@@ -23,8 +23,6 @@ diesel::table! {
         directory -> Varchar,
         #[max_length = 50]
         main_image -> Varchar,
-        #[max_length = 50]
-        display_name -> Varchar,
         is_free -> Bool,
     }
 }
@@ -53,8 +51,6 @@ diesel::table! {
         pages -> Int4,
         #[max_length = 50]
         main_image -> Varchar,
-        #[max_length = 50]
-        display_name -> Varchar,
         is_free -> Bool,
     }
 }
@@ -108,8 +104,6 @@ diesel::table! {
         directory -> Varchar,
         #[max_length = 50]
         main_image -> Varchar,
-        #[max_length = 50]
-        display_name -> Varchar,
         is_free -> Bool,
     }
 }
@@ -131,8 +125,6 @@ diesel::table! {
         file -> Varchar,
         #[max_length = 50]
         main_image -> Varchar,
-        #[max_length = 50]
-        display_name -> Varchar,
         is_free -> Bool,
     }
 }
@@ -160,8 +152,6 @@ diesel::table! {
         file -> Varchar,
         #[max_length = 50]
         main_image -> Varchar,
-        #[max_length = 50]
-        display_name -> Varchar,
         is_free -> Bool,
     }
 }
@@ -189,8 +179,6 @@ diesel::table! {
         directory -> Varchar,
         #[max_length = 50]
         main_image -> Varchar,
-        #[max_length = 50]
-        display_name -> Varchar,
         is_free -> Bool,
     }
 }
@@ -212,8 +200,6 @@ diesel::table! {
         file -> Varchar,
         #[max_length = 50]
         main_image -> Varchar,
-        #[max_length = 50]
-        display_name -> Varchar,
         is_free -> Bool,
     }
 }
