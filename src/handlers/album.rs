@@ -147,9 +147,11 @@ impl Asset for AlbumFull {
     fn destroy(conn: &mut PgConnection, a_id: i32) -> usize {
         use crate::schema::tracks::dsl::*;
 
-        diesel::delete(tracks.filter(album_id.eq(a_id)))
+        let mut changes = diesel::delete(tracks.filter(album_id.eq(a_id)))
             .execute(conn)
-            .expect("Error deleting posts")
+            .expect("Error deleting posts");
+
+        changes + destroy_album(conn, a_id)
     }
 
     fn update(&self, conn: &mut PgConnection) -> usize {
