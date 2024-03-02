@@ -41,14 +41,14 @@ pub struct Album {
 
 #[derive(Insertable)]
 #[diesel(table_name = albums)]
-pub struct AlbumCreate<'a> {
+pub struct AlbumCreate {
     pub creator_id: i32,
-    pub title: &'a str,
-    pub thumb: &'a str,
-    pub summary: &'a str,
-    pub directory: &'a str,
+    pub title: String,
+    pub thumb: String,
+    pub summary: String,
+    pub directory: String,
     pub is_free: bool,
-    pub main_image: &'a str,
+    pub main_image: String,
 }
 
 pub struct AlbumFull {
@@ -63,15 +63,15 @@ pub struct AlbumFull {
     pub tracks: Vec<Track>,
 }
 
-impl<'a> AlbumCreate<'a> {
+impl AlbumCreate {
     pub fn new(
         creator_id: i32,
-        title: &'a str,
-        thumb: &'a str,
-        summary: &'a str,
-        directory: &'a str,
+        title: String,
+        thumb: String,
+        summary: String,
+        directory: String,
         is_free: bool,
-        main_image: &'a str,
+        main_image: String,
     ) -> Self {
         AlbumCreate {
             creator_id,
@@ -98,9 +98,11 @@ impl TrackCreate {
         creator_id: i32,
         album_id: i32,
         title: String,
-        file: String,
+        directory: &str,
         main_image: String,
     ) -> Self {
+        let slug = title.to_lowercase().trim().replace(" ", "-");
+        let file = format!("{}/{}", directory, slug);
         TrackCreate {
             creator_id,
             album_id,
@@ -242,13 +244,25 @@ mod tests {
 
         let album = AlbumCreate::new(
             creator.id,
-            "Operation Doomsday",
-            "thumb.jpg",
-            "A great album by Domm",
-            "directory.jpg",
+            String::from("Operation Doomsday"),
+            String::from("thumb.jpg"),
+            String::from("A great album by Domm"),
+            String::from("directory/"),
             false,
-            "image.jpg",
+            String::from("image.jpg"),
         ).create(conn);
+
+        let tracks = vec![TrackCreate::new(
+            creator.id,
+            album.id,
+            String::from("Doomsday"),
+            &album.directory,
+            String::from("track.jpg"),
+        ).create(conn)];
+
+        let album_full =  AlbumFull::read(conn, album.id);
+
+        assert_eq!(album_full.tracks[0].title, "Doomsday");
 
         AlbumFull::destroy(conn, album.id);
         Creators::destroy(conn, creator.id);
