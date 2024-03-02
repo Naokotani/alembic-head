@@ -1,5 +1,5 @@
 use crate::schema::books;
-use crate::types::asset::{Asset, AssetType, Ownership, Summary};
+use crate::types::asset::Asset;
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset)]
@@ -52,6 +52,7 @@ impl BookCreate {
             is_free,
         }
     }
+
     pub fn create(&self, conn: &mut PgConnection) -> Book {
         diesel::insert_into(books::table)
             .values(self)
@@ -87,17 +88,7 @@ impl Asset for Book {
             .filter(id.eq(self.id))
             .set(self)
             .execute(conn)
-            .expect("Failed to update user");
-        1
-    }
-
-    fn summarize(&self) -> Summary {
-        Summary {
-            display_name: String::from("naokotani"),
-            ownership: Ownership::Owned,
-            asset_type: AssetType::Book,
-            logo: String::from("derp"),
-        }
+            .expect("Failed to update user")
     }
 }
 
@@ -108,6 +99,7 @@ mod tests {
     use crate::handlers::creator::{CreatorNew, Creators};
     use crate::handlers::user::{User, UserNew};
     use crate::types::user::DisplayName;
+    use crate::types::asset::AssetType;
 
     #[test]
     fn user_full() {
@@ -149,6 +141,15 @@ mod tests {
         assert_eq!(book.pages, 385);
         assert_eq!(book.main_image, "image.jpg");
         assert_eq!(book.is_free, false);
+
+        let summary = book.summarize(conn,
+                                     user.id,
+                                     book.creator_id,
+                                     AssetType::Book,
+                                     book.is_free);
+
+        assert_eq!(summary.display_name, "Chris Hughes");
+        assert_eq!(summary.logo, "logo.svg");
 
         let page = book.paginate(
             conn,

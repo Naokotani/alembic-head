@@ -1,16 +1,41 @@
-use diesel::prelude::PgConnection;
 use crate::handlers::creator::Creator;
+use diesel::prelude::PgConnection;
 
 pub trait Asset {
     fn read(conn: &mut PgConnection, id: i32) -> Self;
     fn destroy(conn: &mut PgConnection, id: i32) -> usize;
     fn update(&self, conn: &mut PgConnection) -> usize;
-    fn summarize(&self) -> Summary;
-    fn paginate(&self, conn: &mut PgConnection,
-                _user_id: i32,
-                creator_id: i32,
-                asset_type: AssetType,
-                is_free: bool
+    fn summarize(&self,
+                 conn: &mut PgConnection,
+                 _user_id: i32,
+                 creator_id: i32,
+                 asset_type: AssetType,
+                 is_free: bool
+    ) -> Summary {
+        let (creator, user) = Creator::creator_with_user(conn, creator_id);
+        let display_name = creator.get_display_name();
+        let extra_images = asset_type.images();
+        let ownership = if is_free {
+            Ownership::Free
+        } else {
+            Ownership::Unowned
+        };
+
+        Summary {
+            display_name,
+            ownership,
+            asset_type,
+            logo: user.logo,
+        }
+    }
+
+    fn paginate(
+        &self,
+        conn: &mut PgConnection,
+        _user_id: i32,
+        creator_id: i32,
+        asset_type: AssetType,
+        is_free: bool,
     ) -> Page {
         let (creator, user) = Creator::creator_with_user(conn, creator_id);
         let display_name = creator.get_display_name();
@@ -89,7 +114,7 @@ impl AssetType {
             Self::Album => "album",
             Self::Map => "map",
             Self::MapPack => "map_pack",
-            Self::Stl => "stl", 
+            Self::Stl => "stl",
             Self::TokenPack => "token_pack",
             Self::Token => "token",
         }
@@ -104,7 +129,6 @@ impl AssetType {
             Self::Stl => Vec::new(),
             Self::TokenPack => Vec::new(),
             Self::Token => Vec::new(),
-            
         }
     }
 }
