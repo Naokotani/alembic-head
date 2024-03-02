@@ -112,7 +112,7 @@ diesel::table! {
     maps (id) {
         id -> Int4,
         creator_id -> Int4,
-        map_pack_id -> Nullable<Int4>,
+        map_pack_id -> Int4,
         #[max_length = 50]
         title -> Varchar,
         #[max_length = 35]
@@ -125,7 +125,6 @@ diesel::table! {
         file -> Varchar,
         #[max_length = 50]
         main_image -> Varchar,
-        is_free -> Bool,
     }
 }
 
@@ -187,7 +186,7 @@ diesel::table! {
     tokens (id) {
         id -> Int4,
         creator_id -> Int4,
-        token_pack_id -> Nullable<Int4>,
+        token_pack_id -> Int4,
         #[max_length = 50]
         title -> Varchar,
         #[max_length = 35]

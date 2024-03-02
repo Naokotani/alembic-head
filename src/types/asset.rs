@@ -1,59 +1,11 @@
-use crate::handlers::creator::Creator;
 use diesel::prelude::PgConnection;
 
 pub trait Asset {
     fn read(conn: &mut PgConnection, id: i32) -> Self;
     fn destroy(conn: &mut PgConnection, id: i32) -> usize;
     fn update(&self, conn: &mut PgConnection) -> usize;
-    fn summarize(&self,
-                 conn: &mut PgConnection,
-                 _user_id: i32,
-                 creator_id: i32,
-                 asset_type: AssetType,
-                 is_free: bool
-    ) -> Summary {
-        let (creator, user) = Creator::creator_with_user(conn, creator_id);
-        let display_name = creator.get_display_name();
-        let extra_images = asset_type.images();
-        let ownership = if is_free {
-            Ownership::Free
-        } else {
-            Ownership::Unowned
-        };
-
-        Summary {
-            display_name,
-            ownership,
-            asset_type,
-            logo: user.logo,
-        }
-    }
-
-    fn paginate(
-        &self,
-        conn: &mut PgConnection,
-        _user_id: i32,
-        creator_id: i32,
-        asset_type: AssetType,
-        is_free: bool,
-    ) -> Page {
-        let (creator, user) = Creator::creator_with_user(conn, creator_id);
-        let display_name = creator.get_display_name();
-        let extra_images = asset_type.images();
-        let ownership = if is_free {
-            Ownership::Free
-        } else {
-            Ownership::Unowned
-        };
-
-        Page {
-            display_name,
-            ownership,
-            asset_type,
-            logo: user.logo,
-            extra_images,
-        }
-    }
+    fn summarize(&self, conn: &mut PgConnection, user_id: i32) -> Summary;
+    fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page;
 }
 
 pub struct Summary {

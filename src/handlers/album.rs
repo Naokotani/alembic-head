@@ -1,7 +1,8 @@
 use crate::schema::albums;
 use crate::schema::tracks;
-use crate::types::asset::Asset;
+use crate::types::asset::{Asset, Page, Ownership, AssetType, Summary};
 use diesel::prelude::*;
+use crate::handlers::creator::Creator;
 
 #[derive(Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = tracks)]
@@ -178,6 +179,44 @@ impl Asset for AlbumFull {
 
         update_tracks(conn, self.id, &self.tracks) + changes
     }
+
+    fn summarize(&self, conn: &mut PgConnection, u_id: i32) -> Summary {
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
+        let asset_type = AssetType::Album;
+        let display_name = creator.get_display_name();
+        let ownership = if self.is_free {
+            Ownership::Free
+        } else {
+            Ownership::Unowned
+        };
+
+        Summary {
+            display_name,
+            ownership,
+            asset_type,
+            logo: user.logo,
+        }
+    }
+
+    fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page {
+        let (creator, user) = Creator::creator_with_user(conn, self.id);
+        let display_name = creator.get_display_name();
+        let asset_type = AssetType::Album;
+        let extra_images = asset_type.images();
+        let ownership = if self.is_free {
+            Ownership::Free
+        } else {
+            Ownership::Unowned
+        };
+
+        Page {
+            display_name,
+            ownership,
+            asset_type,
+            logo: user.logo,
+            extra_images,
+        }
+    }
 }
 
 fn get_album(conn: &mut PgConnection, album_id: i32) -> Album {
@@ -264,7 +303,12 @@ mod tests {
 
         assert_eq!(album_full.tracks[0].title, "Doomsday");
 
-        AlbumFull::destroy(conn, album.id);
+        let page = album_full.paginate(conn, user.id);
+
+        let delete = AlbumFull::destroy(conn, album.id);
+
+        assert_eq!(delete, 2);
+        
         Creators::destroy(conn, creator.id);
         User::destroy(conn, user.id);
     }

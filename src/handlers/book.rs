@@ -1,5 +1,6 @@
+use crate::handlers::creator::Creator;
 use crate::schema::books;
-use crate::types::asset::Asset;
+use crate::types::asset::{Asset, AssetType, Ownership, Page, Summary};
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset)]
@@ -90,6 +91,44 @@ impl Asset for Book {
             .execute(conn)
             .expect("Failed to update user")
     }
+
+    fn summarize(&self, conn: &mut PgConnection, u_id: i32) -> Summary {
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
+        let asset_type = AssetType::Book;
+        let display_name = creator.get_display_name();
+        let ownership = if self.is_free {
+            Ownership::Free
+        } else {
+            Ownership::Unowned
+        };
+
+        Summary {
+            display_name,
+            ownership,
+            asset_type,
+            logo: user.logo,
+        }
+    }
+
+    fn paginate(&self, conn: &mut PgConnection, u_id: i32) -> Page {
+        let (creator, user) = Creator::creator_with_user(conn, self.id);
+        let display_name = creator.get_display_name();
+        let asset_type = AssetType::Book;
+        let extra_images = Vec::new();
+        let ownership = if self.is_free {
+            Ownership::Free
+        } else {
+            Ownership::Unowned
+        };
+
+        Page {
+            display_name,
+            ownership,
+            asset_type,
+            logo: user.logo,
+            extra_images,
+        }
+    }
 }
 
 #[cfg(test)]
@@ -98,8 +137,8 @@ mod tests {
     use crate::handlers::connect;
     use crate::handlers::creator::{CreatorNew, Creators};
     use crate::handlers::user::{User, UserNew};
-    use crate::types::user::DisplayName;
     use crate::types::asset::AssetType;
+    use crate::types::user::DisplayName;
 
     #[test]
     fn user_full() {
@@ -142,22 +181,12 @@ mod tests {
         assert_eq!(book.main_image, "image.jpg");
         assert_eq!(book.is_free, false);
 
-        let summary = book.summarize(conn,
-                                     user.id,
-                                     book.creator_id,
-                                     AssetType::Book,
-                                     book.is_free);
+        let summary = book.summarize(conn, user.id);
 
         assert_eq!(summary.display_name, "Chris Hughes");
         assert_eq!(summary.logo, "logo.svg");
 
-        let page = book.paginate(
-            conn,
-            user.id,
-            book.creator_id,
-            AssetType::Book,
-            book.is_free,
-        );
+        let page = book.paginate(conn, user.id);
 
         assert_eq!(page.display_name, "Chris Hughes");
         assert_eq!(page.logo, "logo.svg");
