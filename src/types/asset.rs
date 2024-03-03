@@ -4,8 +4,12 @@ pub trait Asset {
     fn read(conn: &mut PgConnection, id: i32) -> Self;
     fn destroy(conn: &mut PgConnection, id: i32) -> usize;
     fn update(&self, conn: &mut PgConnection) -> usize;
+    //user id refers to the user viewing the content, not the owner
     fn summarize(&self, conn: &mut PgConnection, user_id: i32) -> Summary;
+    //user id refers to the user viewing the content, not the owner
     fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page;
+    fn check_ownership(&self, conn: &mut PgConnection, user_id: i32) -> Ownership;
+        
 }
 
 pub struct Summary {
@@ -36,6 +40,7 @@ pub enum Ownership {
     Unowned,
 }
 
+#[derive(PartialEq, Debug)]
 pub enum AssetType {
     Book,
     Album,

@@ -6,7 +6,6 @@ use diesel::prelude::*;
 #[derive(Debug)]
 pub struct Creator {
     pub id: i32,
-    pub user_id: i32,
     pub first_name: String,
     pub last_name: String,
     pub other_name: String,
@@ -20,7 +19,6 @@ pub struct Creator {
 #[diesel(check_for_backend(diesel::pg::Pg))]
 pub struct Creators {
     id: i32,
-    user_id: i32,
     first_name: Option<String>,
     last_name: Option<String>,
     other_name: Option<String>,
@@ -31,7 +29,7 @@ pub struct Creators {
 #[derive(Insertable)]
 #[diesel(table_name = creators)]
 pub struct CreatorNew {
-    pub user_id: i32,
+    pub id: i32,
     pub first_name: Option<String>,
     pub last_name: Option<String>,
     pub other_name: Option<String>,
@@ -41,7 +39,7 @@ pub struct CreatorNew {
 
 impl Creator {
     pub fn new(creator: Creators) -> Self {
-        let user_id = creator.user_id;
+        let id = creator.id;
 
         let first_name = creator.first_name.unwrap_or_else(|| String::new());
         let last_name = creator.last_name.unwrap_or_else(|| String::new());
@@ -50,8 +48,7 @@ impl Creator {
         let default_name = DisplayName::retreieve(&creator.default_name);
 
         Creator {
-            id: creator.id,
-            user_id,
+            id,
             first_name,
             last_name,
             other_name,
@@ -60,11 +57,11 @@ impl Creator {
         }
     }
 
-    pub fn creator_with_user(conn: &mut PgConnection, creator_id: i32) -> (Self, User) {
+    pub fn creator_with_user(conn: &mut PgConnection, user_id: i32) -> (Self, User) {
 
         let (creators, user) = creators::table
             .inner_join(users::table)
-            .filter(creators::id.eq(creator_id))
+            .filter(users::id.eq(user_id))
             .select((Creators::as_select(), User::as_select()))
             .get_result::<(Creators, User)>(conn).expect("Failed to get user/creator");
 
@@ -95,7 +92,7 @@ impl Creator {
 impl CreatorNew {
     pub fn create(
         conn: &mut PgConnection,
-        user_id: i32,
+        id: i32,
         first_name: Option<String>,
         last_name: Option<String>,
         other_name: Option<String>,
@@ -104,7 +101,7 @@ impl CreatorNew {
     ) -> Creator {
         let name = String::from(name.store());
         let creator_new = CreatorNew {
-            user_id,
+            id,
             first_name,
             last_name,
             other_name,

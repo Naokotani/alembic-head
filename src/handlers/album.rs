@@ -2,7 +2,8 @@ use crate::schema::albums;
 use crate::schema::tracks;
 use crate::types::asset::{Asset, Page, Ownership, AssetType, Summary};
 use diesel::prelude::*;
-use crate::handlers::creator::Creator;
+use super::creator::Creator;
+use super::ownership::albums::UserAlbum;
 
 #[derive(Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = tracks)]
@@ -29,7 +30,7 @@ pub struct TrackCreate {
 #[derive(Queryable, Selectable, Identifiable, AsChangeset)]
 #[diesel(table_name = albums)]
 #[diesel(check_for_backend(diesel::pg::Pg))]
-pub struct Album {
+pub struct AlbumQuery {
     pub id: i32,
     pub creator_id: i32,
     pub title: String,
@@ -52,7 +53,7 @@ pub struct AlbumCreate {
     pub main_image: String,
 }
 
-pub struct AlbumFull {
+pub struct Album {
     pub id: i32,
     pub creator_id: i32,
     pub title: String,
@@ -85,10 +86,10 @@ impl AlbumCreate {
         }
     }
 
-    pub fn create(&self, conn: &mut PgConnection) -> Album {
+    pub fn create(&self, conn: &mut PgConnection) -> AlbumQuery {
         diesel::insert_into(albums::table)
             .values(self)
-            .returning(Album::as_returning())
+            .returning(AlbumQuery::as_returning())
             .get_result(conn)
             .expect("Error saving Book")
     }
@@ -122,8 +123,8 @@ impl TrackCreate {
     }
 }
 
-impl Asset for AlbumFull {
-    fn read(conn: &mut PgConnection, a_id: i32) -> AlbumFull {
+impl Asset for Album {
+    fn read(conn: &mut PgConnection, a_id: i32) -> Album {
         use crate::schema::tracks::dsl::*;
 
         let album = get_album(conn, a_id);
@@ -134,7 +135,7 @@ impl Asset for AlbumFull {
             .get_results(conn)
             .expect("Error loading posts");
 
-        AlbumFull {
+        Album {
             id: album.id,
             creator_id: album.creator_id,
             title: album.title,
@@ -150,7 +151,7 @@ impl Asset for AlbumFull {
     fn destroy(conn: &mut PgConnection, a_id: i32) -> usize {
         use crate::schema::tracks::dsl::*;
 
-        let mut changes = diesel::delete(tracks.filter(album_id.eq(a_id)))
+        let changes = diesel::delete(tracks.filter(album_id.eq(a_id)))
             .execute(conn)
             .expect("Error deleting posts");
 
@@ -160,7 +161,7 @@ impl Asset for AlbumFull {
     fn update(&self, conn: &mut PgConnection) -> usize {
         use crate::schema::albums::dsl::*;
 
-        let album = Album {
+        let album = AlbumQuery {
             id: self.id,
             creator_id: self.creator_id.to_owned(),
             title: self.title.to_owned(),
@@ -177,18 +178,15 @@ impl Asset for AlbumFull {
             .execute(conn)
             .expect("Failed to update user");
 
-        update_tracks(conn, self.id, &self.tracks) + changes
+        update_tracks(conn, &self.tracks) + changes
     }
 
-    fn summarize(&self, conn: &mut PgConnection, u_id: i32) -> Summary {
-        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
+    fn summarize(&self, conn: &mut PgConnection, user_id: i32) -> Summary {
+        let (creator, user) =
+            Creator::creator_with_user(conn, self.creator_id);
         let asset_type = AssetType::Album;
         let display_name = creator.get_display_name();
-        let ownership = if self.is_free {
-            Ownership::Free
-        } else {
-            Ownership::Unowned
-        };
+        let ownership = self.check_ownership(conn, user_id);
 
         Summary {
             display_name,
@@ -199,15 +197,12 @@ impl Asset for AlbumFull {
     }
 
     fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page {
-        let (creator, user) = Creator::creator_with_user(conn, self.id);
+        let (creator, user) =
+            Creator::creator_with_user(conn, self.creator_id);
         let display_name = creator.get_display_name();
         let asset_type = AssetType::Album;
         let extra_images = asset_type.images();
-        let ownership = if self.is_free {
-            Ownership::Free
-        } else {
-            Ownership::Unowned
-        };
+        let ownership = self.check_ownership(conn, user_id);
 
         Page {
             display_name,
@@ -217,14 +212,22 @@ impl Asset for AlbumFull {
             extra_images,
         }
     }
+
+    fn check_ownership(&self, conn: &mut PgConnection, user_id: i32) -> Ownership {
+        if self.is_free {
+            Ownership::Free
+        } else {
+            UserAlbum::check_ownership(conn, user_id, self.id)
+        }
+    }
 }
 
-fn get_album(conn: &mut PgConnection, album_id: i32) -> Album {
+fn get_album(conn: &mut PgConnection, album_id: i32) -> AlbumQuery {
     use crate::schema::albums::dsl::*;
 
     albums
         .filter(id.eq(album_id))
-        .select(Album::as_select())
+        .select(AlbumQuery::as_select())
         .get_result(conn)
         .expect("Error loading posts")
 }
@@ -237,7 +240,7 @@ fn destroy_album(conn: &mut PgConnection, album_id: i32) -> usize {
         .expect("Error deleting posts")
 }
 
-fn update_tracks(conn: &mut PgConnection, a_id: i32, tracks_vec: &Vec<Track>) -> usize {
+fn update_tracks(conn: &mut PgConnection, tracks_vec: &Vec<Track>) -> usize {
     use crate::schema::tracks::dsl::*;
 
     let mut changes: usize = 0;
@@ -276,9 +279,9 @@ mod tests {
             user.id,
             Some(String::from("Chris")),
             Some(String::from("Hughes")),
-            Some(String::from("naokotani")),
+            Some(String::from("frank")),
             Some(String::from("Random House")),
-            DisplayName::Name,
+            DisplayName::Other,
         );
 
         let album = AlbumCreate::new(
@@ -291,7 +294,7 @@ mod tests {
             String::from("image.jpg"),
         ).create(conn);
 
-        let tracks = vec![TrackCreate::new(
+        vec![TrackCreate::new(
             creator.id,
             album.id,
             String::from("Doomsday"),
@@ -299,13 +302,15 @@ mod tests {
             String::from("track.jpg"),
         ).create(conn)];
 
-        let album_full =  AlbumFull::read(conn, album.id);
+        let album_full =  Album::read(conn, album.id);
 
         assert_eq!(album_full.tracks[0].title, "Doomsday");
 
         let page = album_full.paginate(conn, user.id);
 
-        let delete = AlbumFull::destroy(conn, album.id);
+        assert_eq!(page.display_name, "frank");
+
+        let delete = Album::destroy(conn, album.id);
 
         assert_eq!(delete, 2);
         

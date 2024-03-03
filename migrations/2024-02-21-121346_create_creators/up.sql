@@ -2,8 +2,7 @@
 
 CREATE TABLE creators (
 id SERIAL PRIMARY KEY,
-user_id INTEGER NOT NULL,
-FOREIGN KEY (user_id) REFERENCES users(id),
+FOREIGN KEY (id) REFERENCES users(id),
 first_name VARCHAR(35),
 last_name VARCHAR(35),
 other_name VARCHAR(50),

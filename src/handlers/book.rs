@@ -1,6 +1,7 @@
-use crate::handlers::creator::Creator;
+use super::creator::Creator;
 use crate::schema::books;
 use crate::types::asset::{Asset, AssetType, Ownership, Page, Summary};
+use super::ownership::books::UserBook;
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset)]
@@ -92,15 +93,12 @@ impl Asset for Book {
             .expect("Failed to update user")
     }
 
-    fn summarize(&self, conn: &mut PgConnection, u_id: i32) -> Summary {
-        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
+    fn summarize(&self, conn: &mut PgConnection, user_id: i32) -> Summary {
+        let (creator, user) =
+            Creator::creator_with_user(conn, self.creator_id);
         let asset_type = AssetType::Book;
         let display_name = creator.get_display_name();
-        let ownership = if self.is_free {
-            Ownership::Free
-        } else {
-            Ownership::Unowned
-        };
+        let ownership = self.check_ownership(conn, user_id);
 
         Summary {
             display_name,
@@ -110,16 +108,13 @@ impl Asset for Book {
         }
     }
 
-    fn paginate(&self, conn: &mut PgConnection, u_id: i32) -> Page {
-        let (creator, user) = Creator::creator_with_user(conn, self.id);
+    fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page {
+        let (creator, user) =
+            Creator::creator_with_user(conn, self.creator_id);
         let display_name = creator.get_display_name();
         let asset_type = AssetType::Book;
         let extra_images = Vec::new();
-        let ownership = if self.is_free {
-            Ownership::Free
-        } else {
-            Ownership::Unowned
-        };
+        let ownership = self.check_ownership(conn, user_id);
 
         Page {
             display_name,
@@ -127,6 +122,14 @@ impl Asset for Book {
             asset_type,
             logo: user.logo,
             extra_images,
+        }
+    }
+
+    fn check_ownership(&self, conn: &mut PgConnection, user_id: i32) -> Ownership {
+        if self.is_free {
+            Ownership::Free
+        } else {
+            UserBook::check_ownership(conn, user_id, self.id)
         }
     }
 }
@@ -137,11 +140,10 @@ mod tests {
     use crate::handlers::connect;
     use crate::handlers::creator::{CreatorNew, Creators};
     use crate::handlers::user::{User, UserNew};
-    use crate::types::asset::AssetType;
     use crate::types::user::DisplayName;
 
     #[test]
-    fn user_full() {
+    fn book_full() {
         let conn = &mut connect::establish_connection();
 
         let user = UserNew::create(
@@ -150,6 +152,8 @@ mod tests {
             String::from("nao@gmail.com"),
             String::from("logo.svg"),
         );
+
+        assert_eq!(user.username, "naokotani");
 
         let creator = CreatorNew::create(
             conn,
@@ -190,6 +194,7 @@ mod tests {
 
         assert_eq!(page.display_name, "Chris Hughes");
         assert_eq!(page.logo, "logo.svg");
+        assert_eq!(page.ownership, Ownership::Unowned);
 
         book.title = String::from("For Whom the Bell Tolls");
 

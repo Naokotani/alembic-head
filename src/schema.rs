@@ -58,7 +58,6 @@ diesel::table! {
 diesel::table! {
     creators (id) {
         id -> Int4,
-        user_id -> Int4,
         #[max_length = 35]
         first_name -> Nullable<Varchar>,
         #[max_length = 35]
@@ -275,7 +274,7 @@ diesel::joinable!(album_images -> albums (album_id));
 diesel::joinable!(albums -> creators (creator_id));
 diesel::joinable!(book_images -> books (book_id));
 diesel::joinable!(books -> creators (creator_id));
-diesel::joinable!(creators -> users (user_id));
+diesel::joinable!(creators -> users (id));
 diesel::joinable!(map_images -> maps (map_id));
 diesel::joinable!(map_pack_images -> map_packs (map_pack_id));
 diesel::joinable!(map_packs -> creators (creator_id));
