@@ -1,8 +1,8 @@
 use crate::schema::token_packs;
+use super::creator::Creator;
 use crate::schema::tokens;
 use crate::types::asset::{Asset, Page, Ownership, AssetType, Summary};
 use diesel::prelude::*;
-use super::creator::Creator;
 use super::ownership::tokens::UserToken;
 
 #[derive(Queryable, Selectable, AsChangeset)]
@@ -276,10 +276,10 @@ fn update_tokens(conn: &mut PgConnection, tokens_vec: &Vec<Token>) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::handlers::connect;
     use crate::handlers::creator::{CreatorNew, Creators};
     use crate::handlers::user::{User, UserNew};
     use crate::types::user::DisplayName;
+    use crate::handlers::connect;
 
     #[test]
     fn token_full() {
@@ -327,7 +327,7 @@ mod tests {
         )
         .create(conn)];
 
-        let token_pack = TokenPack::read(conn, token_pack.id);
+        let mut token_pack = TokenPack::read(conn, token_pack.id);
 
         assert_eq!(token_pack.tokens[0].title, "Windy Glade");
 
@@ -336,7 +336,31 @@ mod tests {
         assert_eq!(page.display_name, "Chris Hughes");
         assert_eq!(page.asset_type, AssetType::Token);
 
+        let summary = token_pack.summarize(conn, user.id);
 
+        assert_eq!(summary.display_name, "Chris Hughes");
+        assert_eq!(summary.asset_type, AssetType::Token);
+
+        let update_names = Creators::update_names(conn,
+                               creator.id,
+                               None,
+                               None,
+                               Some(creator.other_name),
+                               Some(String::from("Random House")),
+                               DisplayName::OtherPublisher);
+
+        assert_eq!(update_names, 1);
+
+        token_pack.is_free = true;
+        token_pack.update(conn);
+
+        Creators::read(conn, creator.id);
+        let token_pack = TokenPack::read(conn, token_pack.id);
+        let summary = token_pack.summarize(conn, user.id);
+
+        assert_eq!(summary.display_name, "naokotani publisher: Random House");
+
+        assert_eq!(summary.ownership, Ownership::Free);
 
         let delete = TokenPack::destroy(conn, token_pack.id);
 
