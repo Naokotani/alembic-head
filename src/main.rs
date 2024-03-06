@@ -32,7 +32,7 @@ use crate::handlers::connect;
 fn main() {
         let conn = &mut connect::establish_connection();
 
-        let user = UserNew::create(
+        let user1 = UserNew::create(
             conn,
             String::from("naokotani"),
             String::from("nao@gmail.com"),
@@ -41,7 +41,7 @@ fn main() {
 
         CreatorNew::create(
             conn,
-            user.id,
+            user1.id,
             Some(String::from("Chris")),
             Some(String::from("Hughes")),
             Some(String::from("naokotani")),
@@ -49,7 +49,7 @@ fn main() {
             DisplayName::Name,
         );
 
-        UserNew::create(
+        let user2 = UserNew::create(
             conn,
             String::from("Galator"),
             String::from("gal@gmail.com"),
@@ -58,7 +58,7 @@ fn main() {
 
         CreatorNew::create(
             conn,
-            user.id,
+            user2.id,
             Some(String::from("Tommy")),
             Some(String::from("Gendron")),
             Some(String::from("Galator")),

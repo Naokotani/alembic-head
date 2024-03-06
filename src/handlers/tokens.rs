@@ -282,6 +282,63 @@ mod tests {
     use crate::handlers::connect;
 
     #[test]
+    fn token() {
+        let conn = &mut connect::establish_connection();
+
+        let token_pack = TokenPackCreate::new(
+            1,
+            String::from("Epic Fights"),
+            String::from("thumb.jpg"),
+            String::from("Lots of great locations"),
+            String::from("directory"),
+            false,
+            String::from("image.jpg"),
+        )
+        .create(conn);
+
+        vec![TokenCreate::new(
+            1,
+            token_pack.id,
+            String::from("Windy Glade"),
+            String::from("thumb.jpg"),
+            String::from("What a fight area!"),
+            Some(450),
+            Some(450),
+            &token_pack.directory,
+            String::from("image.jpg"),
+            false,
+        )
+        .create(conn)];
+
+        let mut token_pack = TokenPack::read(conn, token_pack.id);
+
+        assert_eq!(token_pack.tokens[0].title, "Windy Glade");
+
+        let page = token_pack.paginate(conn, 2);
+
+        assert_eq!(page.display_name, "Chris Hughes");
+        assert_eq!(page.asset_type, AssetType::Token);
+
+        let summary = token_pack.summarize(conn, 2);
+
+        assert_eq!(summary.display_name, "Chris Hughes");
+        assert_eq!(summary.asset_type, AssetType::Token);
+
+        token_pack.is_free = true;
+        token_pack.update(conn);
+
+        let token_pack = TokenPack::read(conn, token_pack.id);
+        let summary = token_pack.summarize(conn, 1);
+
+
+        assert_eq!(summary.ownership, Ownership::Free);
+
+        let delete = TokenPack::destroy(conn, token_pack.id);
+
+        assert_eq!(delete, 2);
+    }
+
+    #[test]
     fn token_full() {
         let conn = &mut connect::establish_connection();
 
@@ -354,7 +411,6 @@ mod tests {
         token_pack.is_free = true;
         token_pack.update(conn);
 
-        Creators::read(conn, creator.id);
         let token_pack = TokenPack::read(conn, token_pack.id);
         let summary = token_pack.summarize(conn, user.id);
 
