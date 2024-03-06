@@ -1,4 +1,4 @@
-https://github.com/Naokotani/alembic-head/actions/workflows/ci.yml/badge.svg
-
+[[https://github.com/Naokotani/alembic-head/actions/workflows/ci.yml/badge.svg
+][CI]]
 * Alembic Head
 This is currently in early development. So far I have only worked on the diesel database and schema, but eventually it will be an e-commerce site for selling [[https://en.wikipedia.org/wiki/Tabletop_role-playing_game][TTRPG]] assets.
