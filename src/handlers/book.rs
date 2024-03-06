@@ -1,7 +1,7 @@
 use super::creator::Creator;
+use super::ownership::books::UserBook;
 use crate::schema::books;
 use crate::types::asset::{Asset, AssetType, Ownership, Page, Summary};
-use super::ownership::books::UserBook;
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset)]
@@ -94,8 +94,7 @@ impl Asset for Book {
     }
 
     fn summarize(&self, conn: &mut PgConnection, user_id: i32) -> Summary {
-        let (creator, user) =
-            Creator::creator_with_user(conn, self.creator_id);
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
         let asset_type = AssetType::Book;
         let display_name = creator.get_display_name();
         let ownership = self.check_ownership(conn, user_id);
@@ -109,8 +108,7 @@ impl Asset for Book {
     }
 
     fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page {
-        let (creator, user) =
-            Creator::creator_with_user(conn, self.creator_id);
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
         let display_name = creator.get_display_name();
         let asset_type = AssetType::Book;
         let extra_images = Vec::new();

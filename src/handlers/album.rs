@@ -1,9 +1,9 @@
-use crate::schema::albums;
-use crate::schema::tracks;
-use crate::types::asset::{Asset, Page, Ownership, AssetType, Summary};
-use diesel::prelude::*;
 use super::creator::Creator;
 use super::ownership::albums::UserAlbum;
+use crate::schema::albums;
+use crate::schema::tracks;
+use crate::types::asset::{Asset, AssetType, Ownership, Page, Summary};
+use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = tracks)]
@@ -182,8 +182,7 @@ impl Asset for Album {
     }
 
     fn summarize(&self, conn: &mut PgConnection, user_id: i32) -> Summary {
-        let (creator, user) =
-            Creator::creator_with_user(conn, self.creator_id);
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
         let asset_type = AssetType::Album;
         let display_name = creator.get_display_name();
         let ownership = self.check_ownership(conn, user_id);
@@ -197,8 +196,7 @@ impl Asset for Album {
     }
 
     fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page {
-        let (creator, user) =
-            Creator::creator_with_user(conn, self.creator_id);
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
         let display_name = creator.get_display_name();
         let asset_type = AssetType::Album;
         let extra_images = asset_type.images();
@@ -292,7 +290,8 @@ mod tests {
             String::from("directory/"),
             false,
             String::from("image.jpg"),
-        ).create(conn);
+        )
+        .create(conn);
 
         vec![TrackCreate::new(
             creator.id,
@@ -300,9 +299,10 @@ mod tests {
             String::from("Doomsday"),
             &album.directory,
             String::from("track.jpg"),
-        ).create(conn)];
+        )
+        .create(conn)];
 
-        let album_full =  Album::read(conn, album.id);
+        let album_full = Album::read(conn, album.id);
 
         assert_eq!(album_full.tracks[0].title, "Doomsday");
 
@@ -313,7 +313,7 @@ mod tests {
         let delete = Album::destroy(conn, album.id);
 
         assert_eq!(delete, 2);
-        
+
         Creators::destroy(conn, creator.id);
         User::destroy(conn, user.id);
     }

@@ -1,9 +1,9 @@
-use crate::schema::token_packs;
 use super::creator::Creator;
-use crate::schema::tokens;
-use crate::types::asset::{Asset, Page, Ownership, AssetType, Summary};
-use diesel::prelude::*;
 use super::ownership::tokens::UserToken;
+use crate::schema::token_packs;
+use crate::schema::tokens;
+use crate::types::asset::{Asset, AssetType, Ownership, Page, Summary};
+use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset)]
 #[diesel(table_name = tokens)]
@@ -276,10 +276,10 @@ fn update_tokens(conn: &mut PgConnection, tokens_vec: &Vec<Token>) -> usize {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use crate::handlers::connect;
     use crate::handlers::creator::{CreatorNew, Creators};
     use crate::handlers::user::{User, UserNew};
     use crate::types::user::DisplayName;
-    use crate::handlers::connect;
 
     // #[test]
     // fn token() {
@@ -329,7 +329,6 @@ mod tests {
 
     //     let token_pack = TokenPack::read(conn, token_pack.id);
     //     let summary = token_pack.summarize(conn, 1);
-
 
     //     assert_eq!(summary.ownership, Ownership::Free);
 
@@ -398,13 +397,15 @@ mod tests {
         assert_eq!(summary.display_name, "Chris Hughes");
         assert_eq!(summary.asset_type, AssetType::Token);
 
-        let update_names = Creators::update_names(conn,
-                               creator.id,
-                               None,
-                               None,
-                               Some(creator.other_name),
-                               Some(String::from("Random House")),
-                               DisplayName::OtherPublisher);
+        let update_names = Creators::update_names(
+            conn,
+            creator.id,
+            None,
+            None,
+            Some(creator.other_name),
+            Some(String::from("Random House")),
+            DisplayName::OtherPublisher,
+        );
 
         assert_eq!(update_names, 1);
 

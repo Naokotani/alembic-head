@@ -330,8 +330,6 @@ mod tests {
         assert_eq!(page.display_name, "Chris Hughes");
         assert_eq!(page.asset_type, AssetType::Map);
 
-
-
         let delete = MapPack::destroy(conn, map_pack.id);
 
         assert_eq!(delete, 2);

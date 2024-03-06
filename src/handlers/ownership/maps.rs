@@ -1,9 +1,8 @@
 use crate::schema::user_maps;
-use diesel::prelude::*;
 use crate::types::asset::Ownership;
+use diesel::prelude::*;
 
-#[derive(Queryable, Selectable)]
-#[derive(Insertable)]
+#[derive(Queryable, Selectable, Insertable)]
 pub struct UserMap {
     user_id: i32,
     map_id: i32,
@@ -11,10 +10,7 @@ pub struct UserMap {
 
 impl UserMap {
     pub fn new(user_id: i32, map_id: i32) -> Self {
-        UserMap {
-            user_id,
-            map_id,
-        }
+        UserMap { user_id, map_id }
     }
 
     pub fn create(&self, conn: &mut PgConnection) -> usize {
@@ -23,9 +19,8 @@ impl UserMap {
             .execute(conn)
             .expect("Error saving Map")
     }
-    
-    pub fn check_ownership(conn: &mut PgConnection, u_id: i32, b_id: i32) -> Ownership {
 
+    pub fn check_ownership(conn: &mut PgConnection, u_id: i32, b_id: i32) -> Ownership {
         use crate::schema::user_maps::dsl::*;
 
         let result = user_maps
@@ -37,7 +32,6 @@ impl UserMap {
         match result {
             1 => Ownership::Owned,
             _ => Ownership::Unowned,
-    }
-        
+        }
     }
 }

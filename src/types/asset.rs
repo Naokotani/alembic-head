@@ -9,7 +9,6 @@ pub trait Asset {
     //user id refers to the user viewing the content, not the owner
     fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page;
     fn check_ownership(&self, conn: &mut PgConnection, user_id: i32) -> Ownership;
-        
 }
 
 pub struct Summary {

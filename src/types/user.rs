@@ -22,7 +22,7 @@ impl DisplayName {
             "other" => Self::Other,
             "name_publisher" => Self::NamePublisher,
             "other_publisher" => Self::OtherPublisher,
-            _ => panic!("Invalid DisplayName string")
+            _ => panic!("Invalid DisplayName string"),
         }
     }
 }

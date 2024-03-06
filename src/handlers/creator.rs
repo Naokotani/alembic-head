@@ -1,5 +1,5 @@
-use crate::schema::{creators, users};
 use crate::handlers::user::User;
+use crate::schema::{creators, users};
 use crate::types::user::DisplayName;
 use diesel::prelude::*;
 
@@ -58,12 +58,12 @@ impl Creator {
     }
 
     pub fn creator_with_user(conn: &mut PgConnection, user_id: i32) -> (Self, User) {
-
         let (creators, user) = creators::table
             .inner_join(users::table)
             .filter(users::id.eq(user_id))
             .select((Creators::as_select(), User::as_select()))
-            .get_result::<(Creators, User)>(conn).expect("Failed to get user/creator");
+            .get_result::<(Creators, User)>(conn)
+            .expect("Failed to get user/creator");
 
         (Creator::new(creators), user)
     }
@@ -73,18 +73,14 @@ impl Creator {
             DisplayName::Name => format!("{} {}", self.first_name, self.last_name),
             DisplayName::Other => format!("{}", self.other_name),
             DisplayName::NamePublisher => {
-                format!("{} {} publisher: {}",
-                        self.first_name,
-                        self.last_name,
-                        self.publisher
+                format!(
+                    "{} {} publisher: {}",
+                    self.first_name, self.last_name, self.publisher
                 )
-            },
+            }
             DisplayName::OtherPublisher => {
-                format!("{} publisher: {}",
-                        self.other_name,
-                        self.publisher
-                )
-            },
+                format!("{} publisher: {}", self.other_name, self.publisher)
+            }
         }
     }
 }
@@ -109,7 +105,6 @@ impl CreatorNew {
             default_name: name,
         };
 
-
         let creator = diesel::insert_into(creators::table)
             .values(&creator_new)
             .returning(Creators::as_returning())
@@ -118,7 +113,6 @@ impl CreatorNew {
 
         Creator::new(creator)
     }
-
 }
 
 impl Creators {
@@ -132,7 +126,6 @@ impl Creators {
 
         Creator::new(result)
     }
-
 
     pub fn update_names(
         conn: &mut PgConnection,
@@ -177,10 +170,12 @@ mod tests {
     fn creator_full() {
         let conn = &mut connect::establish_connection();
 
-        let user = user::UserNew::create(conn,
-                                   String::from("naokotani"),
-                                   String::from("nao@gmail.com"),
-                                   String::from("logo.svg"));
+        let user = user::UserNew::create(
+            conn,
+            String::from("naokotani"),
+            String::from("nao@gmail.com"),
+            String::from("logo.svg"),
+        );
 
         let creator = CreatorNew::create(
             conn,
@@ -225,7 +220,7 @@ mod tests {
         assert_eq!(creator.publisher, "");
 
         let delete = Creators::destroy(conn, creator.id);
-        
+
         assert_eq!(delete, 1);
 
         let conn = &mut connect::establish_connection();

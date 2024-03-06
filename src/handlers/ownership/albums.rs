@@ -1,9 +1,8 @@
 use crate::schema::user_albums;
-use diesel::prelude::*;
 use crate::types::asset::Ownership;
+use diesel::prelude::*;
 
-#[derive(Queryable, Selectable)]
-#[derive(Insertable)]
+#[derive(Queryable, Selectable, Insertable)]
 pub struct UserAlbum {
     user_id: i32,
     album_id: i32,
@@ -11,10 +10,7 @@ pub struct UserAlbum {
 
 impl UserAlbum {
     pub fn new(user_id: i32, album_id: i32) -> Self {
-        UserAlbum {
-            user_id,
-            album_id,
-        }
+        UserAlbum { user_id, album_id }
     }
 
     pub fn create(&self, conn: &mut PgConnection) -> usize {
@@ -23,9 +19,8 @@ impl UserAlbum {
             .execute(conn)
             .expect("Error saving Album")
     }
-    
-    pub fn check_ownership(conn: &mut PgConnection, u_id: i32, b_id: i32) -> Ownership {
 
+    pub fn check_ownership(conn: &mut PgConnection, u_id: i32, b_id: i32) -> Ownership {
         use crate::schema::user_albums::dsl::*;
 
         let result = user_albums
@@ -37,7 +32,6 @@ impl UserAlbum {
         match result {
             1 => Ownership::Owned,
             _ => Ownership::Unowned,
-    }
-        
+        }
     }
 }

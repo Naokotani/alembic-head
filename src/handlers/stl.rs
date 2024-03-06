@@ -1,7 +1,7 @@
 use super::creator::Creator;
+use super::ownership::stls::UserStl;
 use crate::schema::stls;
 use crate::types::asset::{Asset, AssetType, Ownership, Page, Summary};
-use super::ownership::stls::UserStl;
 use diesel::prelude::*;
 
 #[derive(Queryable, Selectable, AsChangeset)]
@@ -63,8 +63,7 @@ impl Asset for Stl {
     fn read(conn: &mut PgConnection, stl_id: i32) -> Self {
         use crate::schema::stls::dsl::*;
 
-        stls
-            .filter(id.eq(stl_id))
+        stls.filter(id.eq(stl_id))
             .select(Stl::as_select())
             .get_result(conn)
             .expect("Error loading posts")
@@ -89,8 +88,7 @@ impl Asset for Stl {
     }
 
     fn summarize(&self, conn: &mut PgConnection, user_id: i32) -> Summary {
-        let (creator, user) =
-            Creator::creator_with_user(conn, self.creator_id);
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
         let asset_type = AssetType::Stl;
         let display_name = creator.get_display_name();
         let ownership = self.check_ownership(conn, user_id);
@@ -104,8 +102,7 @@ impl Asset for Stl {
     }
 
     fn paginate(&self, conn: &mut PgConnection, user_id: i32) -> Page {
-        let (creator, user) =
-            Creator::creator_with_user(conn, self.creator_id);
+        let (creator, user) = Creator::creator_with_user(conn, self.creator_id);
         let display_name = creator.get_display_name();
         let asset_type = AssetType::Stl;
         let extra_images = Vec::new();

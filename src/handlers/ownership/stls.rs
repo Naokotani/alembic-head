@@ -1,9 +1,8 @@
 use crate::schema::user_stls;
-use diesel::prelude::*;
 use crate::types::asset::Ownership;
+use diesel::prelude::*;
 
-#[derive(Queryable, Selectable)]
-#[derive(Insertable)]
+#[derive(Queryable, Selectable, Insertable)]
 pub struct UserStl {
     user_id: i32,
     stl_id: i32,
@@ -11,10 +10,7 @@ pub struct UserStl {
 
 impl UserStl {
     pub fn new(user_id: i32, stl_id: i32) -> Self {
-        UserStl {
-            user_id,
-            stl_id,
-        }
+        UserStl { user_id, stl_id }
     }
 
     pub fn create(&self, conn: &mut PgConnection) -> usize {
@@ -23,7 +19,7 @@ impl UserStl {
             .execute(conn)
             .expect("Error saving stl ownership")
     }
-    
+
     pub fn check_ownership(conn: &mut PgConnection, u_id: i32, b_id: i32) -> Ownership {
         use crate::schema::user_stls::dsl::*;
 
@@ -36,7 +32,6 @@ impl UserStl {
         match result {
             1 => Ownership::Owned,
             _ => Ownership::Unowned,
-    }
-        
+        }
     }
 }
