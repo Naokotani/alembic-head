@@ -103,7 +103,7 @@ impl TrackCreate {
         directory: &str,
         main_image: String,
     ) -> Self {
-        let slug = title.to_lowercase().trim().replace(" ", "-");
+        let slug = title.to_lowercase().trim().replace(' ', "-");
         let file = format!("{}/{}", directory, slug);
         TrackCreate {
             creator_id,

@@ -103,6 +103,7 @@ impl MapPackCreate {
 }
 
 impl MapCreate {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         creator_id: i32,
         map_pack_id: i32,
@@ -114,7 +115,7 @@ impl MapCreate {
         directory: &str,
         main_image: String,
     ) -> Self {
-        let slug = title.to_lowercase().trim().replace(" ", "-");
+        let slug = title.to_lowercase().trim().replace(' ', "-");
         let file = format!("{}/{}", directory, slug);
         MapCreate {
             creator_id,

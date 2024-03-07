@@ -33,6 +33,7 @@ pub struct BookCreate {
 }
 
 impl BookCreate {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         creator_id: i32,
         title: String,

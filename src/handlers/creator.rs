@@ -41,10 +41,10 @@ impl Creator {
     pub fn new(creator: Creators) -> Self {
         let id = creator.id;
 
-        let first_name = creator.first_name.unwrap_or_else(|| String::new());
-        let last_name = creator.last_name.unwrap_or_else(|| String::new());
-        let other_name = creator.other_name.unwrap_or_else(|| String::new());
-        let publisher = creator.publisher.unwrap_or_else(|| String::new());
+        let first_name = creator.first_name.unwrap_or_default();
+        let last_name = creator.last_name.unwrap_or_default();
+        let other_name = creator.other_name.unwrap_or_default();
+        let publisher = creator.publisher.unwrap_or_default();
         let default_name = DisplayName::retreieve(&creator.default_name);
 
         Creator {
@@ -71,7 +71,7 @@ impl Creator {
     pub fn get_display_name(&self) -> String {
         match self.default_name {
             DisplayName::Name => format!("{} {}", self.first_name, self.last_name),
-            DisplayName::Other => format!("{}", self.other_name),
+            DisplayName::Other => self.other_name.to_string(),
             DisplayName::NamePublisher => {
                 format!(
                     "{} {} publisher: {}",

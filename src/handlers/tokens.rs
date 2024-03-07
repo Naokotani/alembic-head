@@ -106,6 +106,7 @@ impl TokenPackCreate {
 }
 
 impl TokenCreate {
+    #[allow(clippy::too_many_arguments)]
     pub fn new(
         creator_id: i32,
         token_pack_id: i32,
@@ -118,7 +119,7 @@ impl TokenCreate {
         main_image: String,
         is_free: bool,
     ) -> Self {
-        let slug = title.to_lowercase().trim().replace(" ", "-");
+        let slug = title.to_lowercase().trim().replace(' ', "-");
         let file = format!("{}/{}", directory, slug);
         TokenCreate {
             creator_id,
