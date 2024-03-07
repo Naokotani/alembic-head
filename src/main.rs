@@ -24,8 +24,8 @@ mod handlers {
 
 mod schema;
 
-use std::net::TcpListener;
 use alembic_head::run;
+use std::net::TcpListener;
 
 #[tokio::main]
 async fn main() -> std::io::Result<()> {
