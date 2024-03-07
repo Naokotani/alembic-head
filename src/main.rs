@@ -24,45 +24,12 @@ mod handlers {
 
 mod schema;
 
-use crate::handlers::connect;
-use crate::handlers::creator::CreatorNew;
-use crate::handlers::user::UserNew;
-use crate::types::user::DisplayName;
+use std::net::TcpListener;
+use alembic_head::run;
 
-fn main() {
-    let conn = &mut connect::establish_connection();
-
-    let user1 = UserNew::create(
-        conn,
-        String::from("naokotani"),
-        String::from("nao@gmail.com"),
-        String::from("logo.svg"),
-    );
-
-    CreatorNew::create(
-        conn,
-        user1.id,
-        Some(String::from("Chris")),
-        Some(String::from("Hughes")),
-        Some(String::from("naokotani")),
-        Some(String::from("Random House")),
-        DisplayName::Name,
-    );
-
-    let user2 = UserNew::create(
-        conn,
-        String::from("Galator"),
-        String::from("gal@gmail.com"),
-        String::from("logo.svg"),
-    );
-
-    CreatorNew::create(
-        conn,
-        user2.id,
-        Some(String::from("Tommy")),
-        Some(String::from("Gendron")),
-        Some(String::from("Galator")),
-        Some(String::from("Random House")),
-        DisplayName::Name,
-    );
+#[tokio::main]
+async fn main() -> std::io::Result<()> {
+    let listener = TcpListener::bind("127.0.0.1:8080").expect("Failed to bind port 8080");
+    let _port = listener.local_addr().unwrap().port();
+    run(listener)?.await
 }

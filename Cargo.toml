@@ -3,13 +3,21 @@ name = "alembic-head"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[lib]
+path = "src/lib.rs"
+
+[[bin]]
+path = "src/main.rs"
+name = "alembic_head"
 
 [dependencies]
 test-log = "0.2.14"
 tracing = "0.1.40"
 diesel = { version = "2.1.0", features = ["postgres"] }
 dotenvy = "0.15"
+actix-web = "4.5.1"
+reqwest = "0.11.24"
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
 
 [profile.dev]
 opt-level = 0
